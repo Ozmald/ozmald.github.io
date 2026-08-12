@@ -22,7 +22,7 @@ body::before {
 content: "";
 position: fixed;
 top: -20px; left: -20px; right: -20px; bottom: -20px;
-background-image: url('image_3.png');
+background-image: url('image_3.png'); /* Если у вас .jpg, поменяйте здесь расширение */
 background-size: cover;
 background-position: center;
 filter: blur(8px) brightness(0.25);
@@ -426,9 +426,9 @@ transform: scale(1.05);
 
 <script>
 // ВСТАВЬТЕ СЮДУ ВАШУ ССЫЛКУ ИЗ NPOINT.IO В КАВЫЧКАХ:
-const BIN_URL = 'https://api.npoint.io/9248971f6319033feb13';
+const BIN_URL = 'ВАША_ССЫЛКА_ИЗ_NPOINT';
 
-// Загрузка данных из облака при открытии
+// Автоматическая загрузка данных из облака при открытии страницы
 document.addEventListener('DOMContentLoaded', async () => {
 try {
 const response = await fetch(BIN_URL);
@@ -490,20 +490,26 @@ price: item.querySelector('.item-price').innerText
 });
 
 try {
-await fetch(BIN_URL, {
+const response = await fetch(BIN_URL, {
 method: 'PUT',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({ items: itemsArray })
 });
 
+if (response.ok) {
 btn.innerText = '✓';
 btn.style.backgroundColor = '#28a745';
+} else {
+throw new Error('Server error');
+}
+
 setTimeout(() => {
 btn.innerText = '⋮';
 btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
 }, 1000);
 } catch (e) {
-alert('Ошибка сохранения в облако!');
+console.error(e);
+alert('Не удалось сохранить в облако. Проверьте подключение к интернету.');
 btn.innerText = '⋮';
 btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
 }
