@@ -1,519 +1,239 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Меню Напитков</title>
-<style>
-body {
-margin: 0;
-padding: 3vh 4vw;
-height: 100vh;
-overflow: hidden;
-box-sizing: border-box;
-font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-color: #ffffff;
-display: flex;
-flex-direction: column;
-justify-content: center;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню Напитков</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 3vh 4vw;
+            height: 100vh;
+            overflow: hidden; 
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            background-image: url('image_3.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) brightness(0.25);
+            z-index: -1;
+        }
 
-body::before {
-content: "";
-position: fixed;
-top: -20px; left: -20px; right: -20px; bottom: -20px;
-background-image: url('image_3.jpg'); /* Если у вас .jpg, поменяйте здесь расширение */
-background-size: cover;
-background-position: center;
-filter: blur(8px) brightness(0.25);
-z-index: -1;
-}
+        .menu-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            column-count: 2;
+            column-gap: 6vw; 
+        }
 
-.menu-container {
-max-width: 1400px;
-width: 100%;
-margin: 0 auto;
-column-count: 2;
-column-gap: 6vw;
-}
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 1.2vh 0 0.8vh 0; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: 0;
+        }
 
-.menu-item {
-display: flex;
-justify-content: space-between;
-align-items: flex-end;
-padding: 1.2vh 0 0.8vh 0;
-border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-break-inside: avoid;
-page-break-inside: avoid;
-margin-bottom: 0;
-}
+        .item-info {
+            flex-grow: 1;
+            padding-right: 20px;
+        }
 
-.item-info {
-flex-grow: 1;
-padding-right: 20px;
-}
+        .item-header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 0.2vh;
+        }
 
-.item-header {
-display: flex;
-align-items: baseline;
-margin-bottom: 0.2vh;
-}
+        .item-num {
+            font-weight: bold;
+            font-size: 2.2vh;
+            margin-right: 8px;
+            min-width: 22px;
+            color: #ffffff;
+        }
 
-.item-num {
-font-weight: bold;
-font-size: 2.2vh;
-margin-right: 8px;
-min-width: 22px;
-color: #ffffff;
-}
+        .item-title {
+            font-weight: bold;
+            font-size: 2.4vh; 
+            outline: none;
+            letter-spacing: 0.5px;
+        }
 
-.item-title {
-font-weight: bold;
-font-size: 2.4vh;
-outline: none;
-letter-spacing: 0.5px;
-}
+        .item-subtitle {
+            font-size: 1.7vh;
+            color: rgba(255, 255, 255, 0.75);
+            outline: none;
+            letter-spacing: 0.3px;
+        }
 
-.item-subtitle {
-font-size: 1.7vh;
-color: rgba(255, 255, 255, 0.75);
-outline: none;
-letter-spacing: 0.3px;
-}
+        .item-price {
+            font-weight: bold;
+            font-size: 2.6vh;
+            outline: none;
+            white-space: nowrap;
+        }
 
-.item-price {
-font-weight: bold;
-font-size: 2.6vh;
-outline: none;
-white-space: nowrap;
-}
+        body.edit-mode .editable {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+            transition: background 0.2s;
+        }
+        body.edit-mode .editable:focus {
+            background: rgba(255, 255, 255, 0.3);
+        }
 
-/* Стили режима редактирования */
-body.edit-mode .editable {
-background: rgba(255, 255, 255, 0.15);
-border-radius: 4px;
-padding: 2px 4px;
-margin: -2px -4px;
-box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
-transition: background 0.2s;
-}
-body.edit-mode .editable:focus {
-background: rgba(255, 255, 255, 0.3);
-}
-
-/* Кнопка переключения режимов */
-.toggle-btn {
-position: fixed;
-top: 2vh;
-right: 2vw;
-width: 46px;
-height: 46px;
-background: rgba(0, 0, 0, 0.6);
-color: white;
-border: 1px solid rgba(255, 255, 255, 0.4);
-border-radius: 50%;
-font-size: 24px;
-font-weight: bold;
-cursor: pointer;
-display: flex;
-justify-content: center;
-align-items: center;
-z-index: 1000;
-transition: all 0.3s ease;
-line-height: 1;
-padding-bottom: 6px;
-}
-
-.toggle-btn:hover {
-background: rgba(255, 255, 255, 0.2);
-transform: scale(1.05);
-}
-</style>
+        .toggle-btn {
+            position: fixed;
+            top: 2vh;
+            right: 2vw;
+            width: 46px;
+            height: 46px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            line-height: 1;
+            padding-bottom: 6px;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
 
-<button class="toggle-btn" onclick="toggleEdit()" title="Режим редактирования">⋮</button>
+    <button class="toggle-btn" onclick="toggleEdit()" title="Режим редактирования">⋮</button>
 
-<div class="menu-container">
-<!-- Позиция 1 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">1.</span>
-<span class="item-title editable">GUINNESS</span>
-</div>
-<div class="item-subtitle editable">Stout • Ирландия • ABV 4.2%</div>
-</div>
-<div class="item-price editable">1050</div>
-</div>
+    <div class="menu-container" id="menu-list">
+        <div style="color: white; font-size: 2.5vh;">Загрузка меню...</div>
+    </div>
 
-<!-- Позиция 2 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">2.</span>
-<span class="item-title editable">COLLINS</span>
-</div>
-<div class="item-subtitle editable">Stout • Англия • ABV 4.2%</div>
-</div>
-<div class="item-price editable">780</div>
-</div>
+    <script>
+        // ВСТАВЬТЕ СЮДУ ВАШУ ССЫЛКУ НА GOOGLE WEB APP В КАВЫЧКАХ:
+        const API_URL = 'ВАША_ССЫЛКА_ИЗ_APPS_SCRIPT';
 
-<!-- Позиция 3 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">3.</span>
-<span class="item-title editable">BLACK SHEEP IRISH STOUT</span>
-</div>
-<div class="item-subtitle editable">Stout • Россия • ABV 4.0%</div>
-</div>
-<div class="item-price editable">600</div>
-</div>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadMenuFromCloud();
 
-<!-- Позиция 4 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">4.</span>
-<span class="item-title editable">KILKENNY</span>
-</div>
-<div class="item-subtitle editable">Red Ale • Ирландия • ABV 4.3%</div>
-</div>
-<div class="item-price editable">1050</div>
-</div>
+            document.querySelectorAll('.editable').forEach(el => {
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        el.blur(); 
+                    }
+                });
+            });
+        });
 
-<!-- Позиция 5 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">5.</span>
-<span class="item-title editable">LONDON PRIDE</span>
-</div>
-<div class="item-subtitle editable">Bitter • Англия • ABV 4.7%</div>
-</div>
-<div class="item-price editable">900</div>
-</div>
+        async function loadMenuFromCloud() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                if (data && data.items && data.items.length > 0) {
+                    const container = document.getElementById('menu-list');
+                    container.innerHTML = '';
+                    
+                    data.items.forEach((item, index) => {
+                        const menuItem = document.createElement('div');
+                        menuItem.className = 'menu-item';
+                        menuItem.innerHTML = `
+                            <div class="item-info">
+                                <div class="item-header">
+                                    <span class="item-num">${index + 1}.</span>
+                                    <span class="item-title editable" contenteditable="false">${item.title}</span>
+                                </div>
+                                <div class="item-subtitle editable" contenteditable="false">${item.subtitle}</div>
+                            </div>
+                            <div class="item-price editable" contenteditable="false">${item.price}</div>
+                        `;
+                        container.appendChild(menuItem);
+                    });
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки', e);
+            }
+        }
 
-<!-- Позиция 6 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">6.</span>
-<span class="item-title editable">PALM</span>
-</div>
-<div class="item-subtitle editable">Pale Ale • Бельгия • ABV 5.2%</div>
-</div>
-<div class="item-price editable">750</div>
-</div>
+        function toggleEdit() {
+            const body = document.body;
+            body.classList.toggle('edit-mode');
+            const isEdit = body.classList.contains('edit-mode');
+            
+            document.querySelectorAll('.editable').forEach(el => {
+                if (isEdit) {
+                    el.setAttribute('contenteditable', 'true');
+                } else {
+                    el.removeAttribute('contenteditable');
+                }
+            });
 
-<!-- Позиция 7 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">7.</span>
-<span class="item-title editable">PUNK IPA</span>
-</div>
-<div class="item-subtitle editable">IPA • Шотландия • ABV 5.6%</div>
-</div>
-<div class="item-price editable">900</div>
-</div>
+            if (!isEdit) {
+                saveDataToCloud();
+            }
+        }
 
-<!-- Позиция 8 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">8.</span>
-<span class="item-title editable">PETRUS RUBY</span>
-</div>
-<div class="item-subtitle editable">Fruit Beer • Бельгия • ABV 6.9%</div>
-</div>
-<div class="item-price editable">860</div>
-</div>
+        async function saveDataToCloud() {
+            const btn = document.querySelector('.toggle-btn');
+            btn.innerText = '⏳';
 
-<!-- Позиция 9 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">9.</span>
-<span class="item-title editable">MONK'S CAFE</span>
-</div>
-<div class="item-subtitle editable">Flanders Red Ale • Бельгия • ABV 5.5%</div>
-</div>
-<div class="item-price editable">950</div>
-</div>
+            const itemsArray = [];
+            document.querySelectorAll('.menu-item').forEach(item => {
+                itemsArray.push({
+                    title: item.querySelector('.item-title').innerText,
+                    subtitle: item.querySelector('.item-subtitle').innerText,
+                    price: item.querySelector('.item-price').innerText
+                });
+            });
 
-<!-- Позиция 10 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">10.</span>
-<span class="item-title editable">HARAT'S LAGER BY KRUSOVICE</span>
-</div>
-<div class="item-subtitle editable">Lager • Россия • ABV 4.2%</div>
-</div>
-<div class="item-price editable">500</div>
-</div>
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: itemsArray })
+                });
 
-<!-- Позиция 11 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">11.</span>
-<span class="item-title editable">STIEGL</span>
-</div>
-<div class="item-subtitle editable">Lager • Австрия • ABV 5.0%</div>
-</div>
-<div class="item-price editable">960</div>
-</div>
-
-<!-- Позиция 12 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">12.</span>
-<span class="item-title editable">Moto grug</span>
-</div>
-<div class="item-subtitle editable">Lager • Россия • ABV Б/А</div>
-</div>
-<div class="item-price editable">860</div>
-</div>
-
-<!-- Позиция 13 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">13.</span>
-<span class="item-title editable">BAKALAR</span>
-</div>
-<div class="item-subtitle editable">Lager • Чехия • ABV 5.2%</div>
-</div>
-<div class="item-price editable">840</div>
-</div>
-
-<!-- Позиция 14 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">14.</span>
-<span class="item-title editable">LITOVEL MAESTRO</span>
-</div>
-<div class="item-subtitle editable">Lager • Чехия • ABV 4.1%</div>
-</div>
-<div class="item-price editable">650</div>
-</div>
-
-<!-- Позиция 15 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">15.</span>
-<span class="item-title editable">SWINKELS SUPERIOR PILSNER</span>
-</div>
-<div class="item-subtitle editable">Pilsner • Нидерланды • ABV 5.3%</div>
-</div>
-<div class="item-price editable">900</div>
-</div>
-
-<!-- Позиция 16 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">16.</span>
-<span class="item-title editable">BLUE RIBBON</span>
-</div>
-<div class="item-subtitle editable">Lager • Россия • ABV 4.7%</div>
-</div>
-<div class="item-price editable">550</div>
-</div>
-
-<!-- Позиция 17 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">17.</span>
-<span class="item-title editable">MAISEL'S WEISSE</span>
-</div>
-<div class="item-subtitle editable">Weissbier • Германия • ABV 5.1%</div>
-</div>
-<div class="item-price editable">850</div>
-</div>
-
-<!-- Позиция 18 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">18.</span>
-<span class="item-title editable">ASTERIE BLANCHE</span>
-</div>
-<div class="item-subtitle editable">Witbier • Бельгия • ABV 4.9%</div>
-</div>
-<div class="item-price editable">860</div>
-</div>
-
-<!-- Позиция 19 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">19.</span>
-<span class="item-title editable">KURPFALZ UR WEIZEN</span>
-</div>
-<div class="item-subtitle editable">Weissbier • Германия • ABV 5.0%</div>
-</div>
-<div class="item-price editable">850</div>
-</div>
-
-<!-- Позиция 20 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">20.</span>
-<span class="item-title editable">MILK OF AMNESIA</span>
-</div>
-<div class="item-subtitle editable">Milkshake IPA • Россия • ABV 5.5%</div>
-</div>
-<div class="item-price editable">650</div>
-</div>
-
-<!-- Позиция 21 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">21.</span>
-<span class="item-title editable">DACHA PEACH</span>
-</div>
-<div class="item-subtitle editable">Fruit Beer • Россия • ABV 5.1%</div>
-</div>
-<div class="item-price editable">560</div>
-</div>
-
-<!-- Позиция 22 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">22.</span>
-<span class="item-title editable">STOWFORD PRESS</span>
-</div>
-<div class="item-subtitle editable">Cider • Великобритания • ABV 4.5%</div>
-</div>
-<div class="item-price editable">800</div>
-</div>
-
-<!-- Позиция 23 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">23.</span>
-<span class="item-title editable">PETRUS KRIEK</span>
-</div>
-<div class="item-subtitle editable">Kriek • Бельгия • ABV 4.0%</div>
-</div>
-<div class="item-price editable">860</div>
-</div>
-
-<!-- Позиция 24 -->
-<div class="menu-item">
-<div class="item-info">
-<div class="item-header">
-<span class="item-num">24.</span>
-<span class="item-title editable">BLACK SHEEP LAGER</span>
-</div>
-<div class="item-subtitle editable">Lager • Россия • ABV 5.0%</div>
-</div>
-<div class="item-price editable">500</div>
-</div>
-</div>
-
-<script>
-// ВСТАВЬТЕ СЮДУ ВАШУ ССЫЛКУ ИЗ NPOINT.IO В КАВЫЧКАХ:
-const BIN_URL = 'https://api.npoint.io/9248971f6319033feb13';
-
-// Автоматическая загрузка данных из облака при открытии страницы
-document.addEventListener('DOMContentLoaded', async () => {
-try {
-const response = await fetch(BIN_URL);
-const data = await response.json();
-if (data && data.items) {
-const menuItems = document.querySelectorAll('.menu-item');
-menuItems.forEach((item, index) => {
-if (data.items[index]) {
-item.querySelector('.item-title').innerText = data.items[index].title;
-item.querySelector('.item-subtitle').innerText = data.items[index].subtitle;
-item.querySelector('.item-price').innerText = data.items[index].price;
-}
-});
-}
-} catch (e) {
-console.error('Ошибка загрузки данных из облака', e);
-}
-
-document.querySelectorAll('.editable').forEach(el => {
-el.addEventListener('keydown', (e) => {
-if (e.key === 'Enter') {
-e.preventDefault();
-el.blur();
-}
-});
-});
-});
-
-function toggleEdit() {
-const body = document.body;
-body.classList.toggle('edit-mode');
-const isEdit = body.classList.contains('edit-mode');
-
-document.querySelectorAll('.editable').forEach(el => {
-if (isEdit) {
-el.setAttribute('contenteditable', 'true');
-} else {
-el.removeAttribute('contenteditable');
-}
-});
-
-if (!isEdit) {
-saveDataToCloud();
-}
-}
-
-// Сохранение данных в облако npoint.io
-async function saveDataToCloud() {
-const btn = document.querySelector('.toggle-btn');
-btn.innerText = '⏳';
-
-const itemsArray = [];
-document.querySelectorAll('.menu-item').forEach(item => {
-itemsArray.push({
-title: item.querySelector('.item-title').innerText,
-subtitle: item.querySelector('.item-subtitle').innerText,
-price: item.querySelector('.item-price').innerText
-});
-});
-
-try {
-const response = await fetch(BIN_URL, {
-method: 'PUT',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ items: itemsArray })
-});
-
-if (response.ok) {
-btn.innerText = '✓';
-btn.style.backgroundColor = '#28a745';
-} else {
-throw new Error('Server error');
-}
-
-setTimeout(() => {
-btn.innerText = '⋮';
-btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-}, 1000);
-} catch (e) {
-console.error(e);
-alert('Не удалось сохранить в облако. Проверьте подключение к интернету.');
-btn.innerText = '⋮';
-btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-}
-}
-</script>
+                btn.innerText = '✓';
+                btn.style.backgroundColor = '#28a745';
+                setTimeout(() => {
+                    btn.innerText = '⋮';
+                    btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+                }, 1000);
+            } catch (e) {
+                console.error(e);
+                alert('Не удалось сохранить в облако.');
+                btn.innerText = '⋮';
+                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+            }
+        }
+    </script>
 </body>
 </html>
