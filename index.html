@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Меню Напитков</title>
+<style>
+body {
+margin: 0;
+padding: 3vh 4vw;
+height: 100vh;
+overflow: hidden;
+box-sizing: border-box;
+font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+color: #ffffff;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+body::before {
+content: "";
+position: fixed;
+top: -20px; left: -20px; right: -20px; bottom: -20px;
+background-image: url('image_3.png');
+background-size: cover;
+background-position: center;
+filter: blur(8px) brightness(0.25);
+z-index: -1;
+}
+
+.menu-container {
+max-width: 1400px;
+width: 100%;
+margin: 0 auto;
+column-count: 2;
+column-gap: 6vw;
+}
+
+.menu-item {
+display: flex;
+justify-content: space-between;
+align-items: flex-end;
+padding: 1.2vh 0 0.8vh 0;
+border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+break-inside: avoid;
+page-break-inside: avoid;
+margin-bottom: 0;
+}
+
+.item-info {
+flex-grow: 1;
+padding-right: 20px;
+}
+
+.item-header {
+display: flex;
+align-items: baseline;
+margin-bottom: 0.2vh;
+}
+
+.item-num {
+font-weight: bold;
+font-size: 2.2vh;
+margin-right: 8px;
+min-width: 22px;
+color: #ffffff;
+}
+
+.item-title {
+font-weight: bold;
+font-size: 2.4vh;
+outline: none;
+letter-spacing: 0.5px;
+}
+
+.item-subtitle {
+font-size: 1.7vh;
+color: rgba(255, 255, 255, 0.75);
+outline: none;
+letter-spacing: 0.3px;
+}
+
+.item-price {
+font-weight: bold;
+font-size: 2.6vh;
+outline: none;
+white-space: nowrap;
+}
+
+/* Стили режима редактирования */
+body.edit-mode .editable {
+background: rgba(255, 255, 255, 0.15);
+border-radius: 4px;
+padding: 2px 4px;
+margin: -2px -4px;
+box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+transition: background 0.2s;
+}
+body.edit-mode .editable:focus {
+background: rgba(255, 255, 255, 0.3);
+}
+
+/* Кнопка переключения режимов */
+.toggle-btn {
+position: fixed;
+top: 2vh;
+right: 2vw;
+width: 46px;
+height: 46px;
+background: rgba(0, 0, 0, 0.6);
+color: white;
+border: 1px solid rgba(255, 255, 255, 0.4);
+border-radius: 50%;
+font-size: 24px;
+font-weight: bold;
+cursor: pointer;
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+transition: all 0.3s ease;
+line-height: 1;
+padding-bottom: 6px;
+}
+
+.toggle-btn:hover {
+background: rgba(255, 255, 255, 0.2);
+transform: scale(1.05);
+}
+</style>
+</head>
+<body>
+
+<button class="toggle-btn" onclick="toggleEdit()" title="Режим редактирования">⋮</button>
+
+<div class="menu-container">
+<!-- Позиция 1 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">1.</span>
+<span class="item-title editable" data-id="0">GUINNESS</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Stout • Ирландия • ABV 4.2%</div>
+</div>
+<div class="item-price editable" data-id="1">1050</div>
+</div>
+
+<!-- Позиция 2 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">2.</span>
+<span class="item-title editable" data-id="2">COLLINS</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Stout • Англия • ABV 4.2%</div>
+</div>
+<div class="item-price editable" data-id="3">780</div>
+</div>
+
+<!-- Позиция 3 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">3.</span>
+<span class="item-title editable" data-id="4">BLACK SHEEP IRISH STOUT</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Stout • Россия • ABV 4.0%</div>
+</div>
+<div class="item-price editable" data-id="5">600</div>
+</div>
+
+<!-- Позиция 4 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">4.</span>
+<span class="item-title editable" data-id="6">KILKENNY</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Red Ale • Ирландия • ABV 4.3%</div>
+</div>
+<div class="item-price editable" data-id="7">1050</div>
+</div>
+
+<!-- Позиция 5 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">5.</span>
+<span class="item-title editable" data-id="8">LONDON PRIDE</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Bitter • Англия • ABV 4.7%</div>
+</div>
+<div class="item-price editable" data-id="9">900</div>
+</div>
+
+<!-- Позиция 6 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">6.</span>
+<span class="item-title editable" data-id="10">PALM</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Pale Ale • Бельгия • ABV 5.2%</div>
+</div>
+<div class="item-price editable" data-id="11">750</div>
+</div>
+
+<!-- Позиция 7 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">7.</span>
+<span class="item-title editable" data-id="12">PUNK IPA</span>
+</div>
+<div class="item-subtitle editable" style="display:none">IPA • Шотландия • ABV 5.6%</div>
+</div>
+<div class="item-price editable" data-id="13">900</div>
+</div>
+
+<!-- Позиция 8 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">8.</span>
+<span class="item-title editable" data-id="14">PETRUS RUBY</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Fruit Beer • Бельгия • ABV 6.9%</div>
+</div>
+<div class="item-price editable" data-id="15">860</div>
+</div>
+
+<!-- Позиция 9 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">9.</span>
+<span class="item-title editable" data-id="16">MONK'S CAFE</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Flanders Red Ale • Бельгия • ABV 5.5%</div>
+</div>
+<div class="item-price editable" data-id="17">950</div>
+</div>
+
+<!-- Позиция 10 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">10.</span>
+<span class="item-title editable" data-id="18">HARAT'S LAGER BY KRUSOVICE</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Lager • Россия • ABV 4.2%</div>
+</div>
+<div class="item-price editable" data-id="19">500</div>
+</div>
+
+<!-- Позиция 11 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">11.</span>
+<span class="item-title editable" data-id="20">STIEGL</span>
+</div>
+<div class="item-subtitle editable" style="display:none">Lager • Австрия • ABV 5.0%</div>
+</div>
+<div class="item-price editable" data-id="21">960</div>
+</div>
+
+<!-- Позиция 12 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">12.</span>
+<span class="item-title editable" data-id="22">Moto grug</span>
+</div>
+<div class="item-subtitle editable" data-id="23">Lager • Россия • ABV Б/А</div>
+</div>
+<div class="item-price editable" data-id="24">860</div>
+</div>
+
+<!-- Позиция 13 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">13.</span>
+<span class="item-title editable" data-id="25">BAKALAR</span>
+</div>
+<div class="item-subtitle editable" data-id="26">Lager • Чехия • ABV 5.2%</div>
+</div>
+<div class="item-price editable" data-id="27">840</div>
+</div>
+
+<!-- Позиция 14 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">14.</span>
+<span class="item-title editable" data-id="28">LITOVEL MAESTRO</span>
+</div>
+<div class="item-subtitle editable" data-id="29">Lager • Чехия • ABV 4.1%</div>
+</div>
+<div class="item-price editable" data-id="30">650</div>
+</div>
+
+<!-- Позиция 15 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">15.</span>
+<span class="item-title editable" data-id="31">SWINKELS SUPERIOR PILSNER</span>
+</div>
+<div class="item-subtitle editable" data-id="32">Pilsner • Нидерланды • ABV 5.3%</div>
+</div>
+<div class="item-price editable" data-id="33">900</div>
+</div>
+
+<!-- Позиция 16 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">16.</span>
+<span class="item-title editable" data-id="34">BLUE RIBBON</span>
+</div>
+<div class="item-subtitle editable" data-id="35">Lager • Россия • ABV 4.7%</div>
+</div>
+<div class="item-price editable" data-id="36">550</div>
+</div>
+
+<!-- Позиция 17 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">17.</span>
+<span class="item-title editable" data-id="37">MAISEL'S WEISSE</span>
+</div>
+<div class="item-subtitle editable" data-id="38">Weissbier • Германия • ABV 5.1%</div>
+</div>
+<div class="item-price editable" data-id="39">850</div>
+</div>
+
+<!-- Позиция 18 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">18.</span>
+<span class="item-title editable" data-id="40">ASTERIE BLANCHE</span>
+</div>
+<div class="item-subtitle editable" data-id="41">Witbier • Бельгия • ABV 4.9%</div>
+</div>
+<div class="item-price editable" data-id="42">860</div>
+</div>
+
+<!-- Позиция 19 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">19.</span>
+<span class="item-title editable" data-id="43">KURPFALZ UR WEIZEN</span>
+</div>
+<div class="item-subtitle editable" data-id="44">Weissbier • Германия • ABV 5.0%</div>
+</div>
+<div class="item-price editable" data-id="45">850</div>
+</div>
+
+<!-- Позиция 20 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">20.</span>
+<span class="item-title editable" data-id="46">MILK OF AMNESIA</span>
+</div>
+<div class="item-subtitle editable" data-id="47">Milkshake IPA • Россия • ABV 5.5%</div>
+</div>
+<div class="item-price editable" data-id="48">650</div>
+</div>
+
+<!-- Позиция 21 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">21.</span>
+<span class="item-title editable" data-id="49">DACHA PEACH</span>
+</div>
+<div class="item-subtitle editable" data-id="50">Fruit Beer • Россия • ABV 5.1%</div>
+</div>
+<div class="item-price editable" data-id="51">560</div>
+</div>
+
+<!-- Позиция 22 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">22.</span>
+<span class="item-title editable" data-id="52">STOWFORD PRESS</span>
+</div>
+<div class="item-subtitle editable" data-id="53">Cider • Великобритания • ABV 4.5%</div>
+</div>
+<div class="item-price editable" data-id="54">800</div>
+</div>
+
+<!-- Позиция 23 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">23.</span>
+<span class="item-title editable" data-id="55">PETRUS KRIEK</span>
+</div>
+<div class="item-subtitle editable" data-id="56">Kriek • Бельгия • ABV 4.0%</div>
+</div>
+<div class="item-price editable" data-id="57">860</div>
+</div>
+
+<!-- Позиция 24 -->
+<div class="menu-item">
+<div class="item-info">
+<div class="item-header">
+<span class="item-num">24.</span>
+<span class="item-title editable" data-id="58">BLACK SHEEP LAGER</span>
+</div>
+<div class="item-subtitle editable" data-id="59">Lager • Россия • ABV 5.0%</div>
+</div>
+<div class="item-price editable" data-id="60">500</div>
+</div>
+</div>
+
+<script>
+// ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА ВАШУ ИЗ NPOINT.IO:
+const BIN_URL = 'https://api.npoint.io/9248971f6319033feb13';
+
+// Автоматическая загрузка данных из облака при открытии страницы
+document.addEventListener('DOMContentLoaded', async () => {
+try {
+const response = await fetch(BIN_URL);
+const data = await response.json();
+if (data && data.drinks) {
+document.querySelectorAll('.editable').forEach(el => {
+const id = el.getAttribute('data-id');
+if (data.drinks[id] !== undefined) {
+el.innerText = data.drinks[id];
+}
+});
+}
+} catch (e) {
+console.error('Ошибка загрузки данных из облака', e);
+}
+
+document.querySelectorAll('.editable').forEach(el => {
+el.addEventListener('keydown', (e) => {
+if (e.key === 'Enter') {
+e.preventDefault();
+el.blur();
+}
+});
+});
+});
+
+function toggleEdit() {
+const body = document.body;
+body.classList.toggle('edit-mode');
+const isEdit = body.classList.contains('edit-mode');
+
+document.querySelectorAll('.editable').forEach(el => {
+if (isEdit) {
+el.setAttribute('contenteditable', 'true');
+} else {
+el.removeAttribute('contenteditable');
+}
+});
+
+if (!isEdit) {
+saveDataToCloud();
+}
+}
+
+// Сохранение данных в облако npoint.io
+async function saveDataToCloud() {
+const btn = document.querySelector('.toggle-btn');
+btn.innerText = '⏳';
+
+const drinksArray = [];
+// Собираем все поля по порядку их data-id
+for (let i = 0; i <= 60; i++) {
+const el = document.querySelector(`[data-id="${i}"]`);
+drinksArray.push(el ? el.innerText : '');
+}
+
+try {
+await fetch(BIN_URL, {
+method: 'PUT',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ drinks: drinksArray })
+});
+
+btn.innerText = '✓';
+btn.style.backgroundColor = '#28a745';
+setTimeout(() => {
+btn.innerText = '⋮';
+btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+}, 1000);
+} catch (e) {
+alert('Ошибка сохранения в облако!');
+btn.innerText = '⋮';
+btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+}
+}
+</script>
+</body>
+</html>
