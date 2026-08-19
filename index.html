@@ -44,62 +44,17 @@
             padding: 1.2vh 0 0.8vh 0; 
             border-bottom: 1px solid rgba(255, 255, 255, 0.25);
             break-inside: avoid;
-            page-break-inside: avoid;
             margin-bottom: 0;
         }
 
-        .item-info {
-            flex-grow: 1;
-            padding-right: 20px;
-        }
+        .item-info { flex-grow: 1; padding-right: 20px; }
+        .item-header { display: flex; align-items: baseline; margin-bottom: 0.2vh; }
+        .item-num { font-weight: bold; font-size: 2.2vh; margin-right: 8px; min-width: 22px; }
+        .item-title { font-weight: bold; font-size: 2.4vh; letter-spacing: 0.5px; }
+        .item-subtitle { font-size: 1.7vh; color: rgba(255, 255, 255, 0.75); letter-spacing: 0.3px; }
+        .item-price { font-weight: bold; font-size: 2.6vh; white-space: nowrap; }
 
-        .item-header {
-            display: flex;
-            align-items: baseline;
-            margin-bottom: 0.2vh;
-        }
-
-        .item-num {
-            font-weight: bold;
-            font-size: 2.2vh;
-            margin-right: 8px;
-            min-width: 22px;
-            color: #ffffff;
-        }
-
-        .item-title {
-            font-weight: bold;
-            font-size: 2.4vh; 
-            outline: none;
-            letter-spacing: 0.5px;
-        }
-
-        .item-subtitle {
-            font-size: 1.7vh;
-            color: rgba(255, 255, 255, 0.75);
-            outline: none;
-            letter-spacing: 0.3px;
-        }
-
-        .item-price {
-            font-weight: bold;
-            font-size: 2.6vh;
-            outline: none;
-            white-space: nowrap;
-        }
-
-        body.edit-mode .editable {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 4px;
-            padding: 2px 4px;
-            margin: -2px -4px;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
-            transition: background 0.2s;
-        }
-        body.edit-mode .editable:focus {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
+        /* Кнопка полноэкранного режима */
         .toggle-btn {
             position: fixed;
             top: 2vh;
@@ -110,128 +65,72 @@
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 50%;
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 22px;
             cursor: pointer;
+            z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            line-height: 1;
-            padding-bottom: 6px;
+            transition: all 0.3s;
         }
-        
-        .toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .toggle-btn:hover { 
+            background: rgba(255, 255, 255, 0.2); 
             transform: scale(1.05);
         }
     </style>
 </head>
 <body>
 
-    <button class="toggle-btn" onclick="toggleEdit()" title="Режим редактирования">⋮</button>
+    <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
 
     <div class="menu-container" id="menu-list">
-        <div style="color: white; font-size: 2.5vh;">Загрузка меню...</div>
+        <div style="color: white; font-size: 2.5vh; text-align: center;">Загрузка меню...</div>
     </div>
 
     <script>
         // ВСТАВЬТЕ СЮДУ ВАШУ ССЫЛКУ НА GOOGLE WEB APP В КАВЫЧКАХ:
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadMenuFromCloud();
-
-            document.querySelectorAll('.editable').forEach(el => {
-                el.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        el.blur(); 
-                    }
-                });
-            });
-        });
+        document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
 
         async function loadMenuFromCloud() {
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                if (data && data.items && data.items.length > 0) {
+                if (data && data.items) {
                     const container = document.getElementById('menu-list');
                     container.innerHTML = '';
-                    
                     data.items.forEach((item, index) => {
-                        const menuItem = document.createElement('div');
-                        menuItem.className = 'menu-item';
-                        menuItem.innerHTML = `
+                        const div = document.createElement('div');
+                        div.className = 'menu-item';
+                        div.innerHTML = `
                             <div class="item-info">
                                 <div class="item-header">
                                     <span class="item-num">${index + 1}.</span>
-                                    <span class="item-title editable" contenteditable="false">${item.title}</span>
+                                    <span class="item-title">${item.title}</span>
                                 </div>
-                                <div class="item-subtitle editable" contenteditable="false">${item.subtitle}</div>
+                                <div class="item-subtitle">${item.subtitle}</div>
                             </div>
-                            <div class="item-price editable" contenteditable="false">${item.price}</div>
+                            <div class="item-price">${item.price}</div>
                         `;
-                        container.appendChild(menuItem);
+                        container.appendChild(div);
                     });
                 }
-            } catch (e) {
-                console.error('Ошибка загрузки', e);
-            }
-        }
-
-        function toggleEdit() {
-            const body = document.body;
-            body.classList.toggle('edit-mode');
-            const isEdit = body.classList.contains('edit-mode');
-            
-            document.querySelectorAll('.editable').forEach(el => {
-                if (isEdit) {
-                    el.setAttribute('contenteditable', 'true');
-                } else {
-                    el.removeAttribute('contenteditable');
-                }
-            });
-
-            if (!isEdit) {
-                saveDataToCloud();
-            }
-        }
-
-        async function saveDataToCloud() {
-            const btn = document.querySelector('.toggle-btn');
-            btn.innerText = '⏳';
-
-            const itemsArray = [];
-            document.querySelectorAll('.menu-item').forEach(item => {
-                itemsArray.push({
-                    title: item.querySelector('.item-title').innerText,
-                    subtitle: item.querySelector('.item-subtitle').innerText,
-                    price: item.querySelector('.item-price').innerText
-                });
-            });
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ items: itemsArray })
-                });
-
-                btn.innerText = '✓';
-                btn.style.backgroundColor = '#28a745';
-                setTimeout(() => {
-                    btn.innerText = '⋮';
-                    btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-                }, 1000);
-            } catch (e) {
+            } catch (e) { 
                 console.error(e);
-                alert('Не удалось сохранить в облако.');
-                btn.innerText = '⋮';
-                btn.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+                document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка загрузки меню</div>';
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error('Ошибка полноэкранного режима:', err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
             }
         }
     </script>
