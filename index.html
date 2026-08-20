@@ -81,7 +81,40 @@
 </head>
 <body>
 
-    <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
+    function toggleFullScreen() {
+    var element = document.documentElement;
+
+    // Если уже полноэкранный режим — выходим
+    if (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement
+    ) {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+        return;
+    }
+
+    // 1. Современный вариант
+    if (element.requestFullscreen) {
+        element.requestFullscreen().catch(function () {
+            // 2. Запасной старый WebKit-вариант
+            if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            }
+        });
+
+        return;
+    }
+
+    // 3. Старый WebKit-вариант
+    if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+        return;
+    }
+}
 
     <div class="menu-container" id="menu-list">
         <div style="color: white; font-size: 2.5vh; text-align: center;">Загрузка меню...</div>
