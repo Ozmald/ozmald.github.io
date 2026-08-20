@@ -77,6 +77,14 @@
             background: rgba(255, 255, 255, 0.2); 
             transform: scale(1.05);
         }
+
+        /* Режим имитации полного экрана для упрямых браузеров */
+        body.fake-fullscreen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 99999;
+            padding: 4vh 5vw;
+        }
     </style>
 </head>
 <body>
@@ -123,14 +131,18 @@
         }
 
         function toggleFullScreen() {
+            // Сначала пробуем стандартный метод браузера
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.error('Ошибка полноэкранного режима:', err);
+                    // Если телевизор заблокировал системный фулскрин, включаем CSS-растягивание
+                    console.warn('Системный фулскрин заблокирован телевизором, включаем альтернативный режим');
+                    document.body.classList.toggle('fake-fullscreen');
                 });
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 }
+                document.body.classList.remove('fake-fullscreen');
             }
         }
     </script>
