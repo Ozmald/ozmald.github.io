@@ -50,9 +50,14 @@
         .item-info { flex-grow: 1; padding-right: 20px; }
         .item-header { display: flex; align-items: baseline; margin-bottom: 0.2vh; }
         .item-num { font-weight: bold; font-size: 2.2vh; margin-right: 8px; min-width: 22px; }
-        .item-title { font-weight: bold; font-size: 2.4vh; letter-spacing: 0.5px; }
+        
+        /* УВЕЛИЧЕННЫЙ ШРИФТ НАЗВАНИЙ */
+        .item-title { font-weight: bold; font-size: 2.8vh; letter-spacing: 0.5px; }
+        
         .item-subtitle { font-size: 1.7vh; color: rgba(255, 255, 255, 0.75); letter-spacing: 0.3px; }
-        .item-price { font-weight: bold; font-size: 2.6vh; white-space: nowrap; }
+        
+        /* УВЕЛИЧЕННЫЙ ШРИФТ ЦЕН */
+        .item-price { font-weight: bold; font-size: 3.2vh; white-space: nowrap; }
 
         /* Кнопка полноэкранного режима */
         .toggle-btn {
@@ -96,7 +101,6 @@
     </div>
 
     <script>
-        // ВСТАВЬТЕ СЮДУ ВАШУ ССЫЛКУ НА GOOGLE WEB APP В КАВЫЧКАХ:
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
 
         document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
@@ -146,16 +150,13 @@
         }
 
         function toggleFullScreen() {
-            // Сначала пробуем стандартный метод браузера
             if (!document.fullscreenElement) {
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen().catch(function (err) {
-                        // Если телевизор заблокировал системный фулскрин, включаем CSS-растягивание
                         console.warn('Системный фулскрин заблокирован телевизором, включаем альтернативный режим');
                         document.body.classList.toggle('fake-fullscreen');
                     });
                 } else {
-                    // На телевизоре нет API requestFullscreen — сразу CSS-растягивание
                     document.body.classList.toggle('fake-fullscreen');
                 }
             } else {
@@ -168,3 +169,4 @@
     </script>
 </body>
 </html>
+
