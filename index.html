@@ -51,12 +51,12 @@
         .item-header { display: flex; align-items: baseline; margin-bottom: 0.2vh; }
         .item-num { font-weight: bold; font-size: 2.2vh; margin-right: 8px; min-width: 22px; }
         
-        /* УВЕЛИЧЕННЫЙ ШРИФТ НАЗВАНИЙ */
+        /* Увеличенный шрифт названий */
         .item-title { font-weight: bold; font-size: 2.8vh; letter-spacing: 0.5px; }
         
         .item-subtitle { font-size: 1.7vh; color: rgba(255, 255, 255, 0.75); letter-spacing: 0.3px; }
         
-        /* УВЕЛИЧЕННЫЙ ШРИФТ ЦЕН */
+        /* Увеличенный шрифт цен */
         .item-price { font-weight: bold; font-size: 3.2vh; white-space: nowrap; }
 
         /* Кнопка полноэкранного режима */
@@ -83,7 +83,6 @@
             transform: scale(1.05);
         }
 
-        /* Режим имитации полного экрана для упрямых браузеров */
         body.fake-fullscreen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -104,6 +103,46 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
 
         document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
+
+        // Функция для определения цвета позиции по её точному названию
+        function getPositionColor(title) {
+            const cleanTitle = title.trim().toLowerCase();
+            
+            // Коричневый
+            if (['collin’s', 'collins', 'guinness', 'black sheep stout'].includes(cleanTitle)) {
+                return '#A0522D'; // Сienna / Коричневый
+            }
+            // Светло-зеленый
+            if (['punk ipa', 'milk of amnesia'].includes(cleanTitle)) {
+                return '#90EE90'; // LightGreen
+            }
+            // Розовый
+            if (['petrus kriek', 'monk s kafe', 'monks kafe', 'petrus ruby'].includes(cleanTitle)) {
+                return '#FFB6C1'; // LightPink
+            }
+            // Желтый
+            if (['stiegl', 'harats lager', 'swinckels', 'black sheep lager', 'pabst', 'bakalar', 'litovel'].includes(cleanTitle)) {
+                return '#FFD700'; // Gold / Желтый
+            }
+            // Голубой
+            if (['moto drug'].includes(cleanTitle)) {
+                return '#00BFFF'; // DeepSkyBlue
+            }
+            // Красный
+            if (['dacha', 'kilkenny', 'palm', 'london pride'].includes(cleanTitle)) {
+                return '#FF4500'; // OrangeRed / Красный
+            }
+            // Бежевый
+            if (['asteria blanche', 'maisels weisse', 'kurpfalz'].includes(cleanTitle)) {
+                return '#F5F5DC'; // Beige
+            }
+            // Ярко-желтый
+            if (['stowford press'].includes(cleanTitle)) {
+                return '#FFFF00'; // Yellow
+            }
+            
+            return '#ffffff'; // По умолчанию белый
+        }
 
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
@@ -127,13 +166,15 @@
                 container.innerHTML = '';
                 for (var index = 0; index < data.items.length; index++) {
                     var item = data.items[index];
+                    var color = getPositionColor(item.title);
+                    
                     var div = document.createElement('div');
                     div.className = 'menu-item';
                     div.innerHTML =
                         '<div class="item-info">' +
                             '<div class="item-header">' +
-                                '<span class="item-num">' + (index + 1) + '.</span>' +
-                                '<span class="item-title">' + item.title + '</span>' +
+                                '<span class="item-num" style="color: ' + color + ';">' + (index + 1) + '.</span>' +
+                                '<span class="item-title" style="color: ' + color + ';">' + item.title + '</span>' +
                             '</div>' +
                             '<div class="item-subtitle">' + item.subtitle + '</div>' +
                         '</div>' +
@@ -169,4 +210,3 @@
     </script>
 </body>
 </html>
-
