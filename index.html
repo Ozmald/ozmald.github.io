@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Меню Напитков</title>
+    <title>Меню Напитков (Диагностика)</title>
     <style>
         body {
             margin: 0;
@@ -82,7 +82,6 @@
             letter-spacing: 0.3px; 
         }
         
-        /* Блок цен */
         .item-price { 
             font-weight: bold; 
             font-size: 3.2vh; 
@@ -144,10 +143,6 @@
             align-items: center;
             transition: all 0.3s;
         }
-        .toggle-btn:hover { 
-            background: rgba(255, 255, 255, 0.2); 
-            transform: scale(1.05);
-        }
 
         .test-btn {
             padding: 0 15px;
@@ -178,7 +173,7 @@
 <body>
 
     <div class="controls">
-        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест акции: ВЫКЛ</button>
+        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест ВСЕХ цен: ВЫКЛ</button>
         <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
     </div>
 
@@ -200,17 +195,15 @@
             forceTestMode = !forceTestMode;
             const btn = document.getElementById('testToggleBtn');
             if (forceTestMode) {
-                btn.innerText = '🧪 Тест акции: ВКЛ';
+                btn.innerText = '🧪 Тест ВСЕХ цен: ВКЛ';
                 btn.classList.add('active');
             } else {
-                btn.innerText = '🧪 Тест акции: ВЫКЛ';
+                btn.innerText = '🧪 Тест ВСЕХ цен: ВЫКЛ';
                 btn.classList.remove('active');
             }
             
             if (cachedMenuData) {
                 renderMenu(cachedMenuData);
-            } else {
-                loadMenuFromCloud();
             }
         }
 
@@ -220,16 +213,14 @@
                 const dayOfWeek = now.getDay(); 
                 const hours = now.getHours();   
 
-                // Очищаем строку от лишних пробелов и переводим в нижний регистр
                 const cleanTitle = (title || '').trim().toLowerCase();
 
                 const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
                 const isMondayPromo = (dayOfWeek === 1 && hours < 12);
                 
+                // ДИАГНОСТИКА: Если включен тест, применяем акцию ко ВСЕМ позициям без разбора
                 const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-                
-                // Четкая проверка на GUINNESS и KILKENNY
-                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
+                const isTargetItem = forceTestMode ? true : (cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny'));
 
                 if (isPromoActive && isTargetItem && basePriceStr) {
                     let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
