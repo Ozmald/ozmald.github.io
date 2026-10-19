@@ -193,7 +193,7 @@
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
-        let forceTestMode = false; // Флаг принудительного включения теста
+        let forceTestMode = false;
 
         document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
 
@@ -207,7 +207,7 @@
                 btn.innerText = '🧪 Тест акции: ВЫКЛ';
                 btn.classList.remove('active');
             }
-            loadMenuFromCloud(); // Перезагружаем меню с учетом нового режима
+            loadMenuFromCloud();
         }
 
         function renderPriceHTML(title, basePriceStr) {
@@ -217,13 +217,11 @@
 
             const cleanTitle = title.trim().toLowerCase();
 
-            // Условия реального времени (Воскресенье с 12:00 или Понедельник до 12:00)
+            // Воскресенье с 12:00 или Понедельник до 12:00
             const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
             const isMondayPromo = (dayOfWeek === 1 && hours < 12);
             
-            // Если включен тест ИЛИ наступило реальное время акции
             const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-
             const isTargetItem = (cleanTitle === 'guinness' || cleanTitle === 'kilkenny');
 
             if (isPromoActive && isTargetItem) {
@@ -234,7 +232,6 @@
                     let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
                     let newPriceStr = discountedPrice + ' ' + suffix;
 
-                    // Новая цена слева, старая перечеркнутая «от руки» справа
                     return '<span class="new-price">' + newPriceStr + '</span>' +
                            '<span class="old-price">' + basePriceStr + '</span>';
                 }
@@ -300,7 +297,7 @@
                         document.body.classList.toggle('fake-fullscreen');
                     });
                 } else {
-                    document.body.classList.toggle('flow-fake-fullscreen');
+                    document.body.classList.toggle('fake-fullscreen');
                 }
             } else {
                 if (document.exitFullscreen) {
