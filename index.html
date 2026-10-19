@@ -40,7 +40,7 @@
         .menu-item {
             display: flex;
             justify-content: space-between;
-            align-items: center; /* Центрирование по вертикали */
+            align-items: center;
             padding: 1.2vh 0 0.8vh 0; 
             border-bottom: 1px solid rgba(255, 255, 255, 0.25);
             break-inside: avoid;
@@ -50,7 +50,7 @@
         .item-info { 
             flex-grow: 1; 
             padding-right: 20px; 
-            padding-left: 32px; /* Отступ слева для выравнивания описания с названием */
+            padding-left: 32px; 
             position: relative;
         }
 
@@ -69,7 +69,6 @@
             color: #ffffff;
         }
         
-        /* Белый увеличенный шрифт названий */
         .item-title { 
             font-weight: bold; 
             font-size: 2.8vh; 
@@ -77,29 +76,64 @@
             color: #ffffff;
         }
         
-        /* Подзаголовок начинается ровно под названием напитка */
         .item-subtitle { 
             font-size: 1.7vh; 
             color: rgba(255, 255, 255, 0.75); 
             letter-spacing: 0.3px; 
         }
         
-        /* Цены: выравнивание строго по центру блока (по горизонтали) */
+        /* Блок цен */
         .item-price { 
             font-weight: bold; 
             font-size: 3.2vh; 
             white-space: nowrap; 
             color: #ffffff;
-            text-align: center; /* Выравнивание по центру */
-            width: 120px;       /* Зафиксированная ширина блока цены */
+            text-align: center;
+            width: 180px;
             flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
         }
 
-        /* Кнопка полноэкранного режима */
-        .toggle-btn {
+        /* Стиль для акционной (новой) цены слева */
+        .new-price {
+            color: #ff3333;
+        }
+
+        /* Стиль для старой перечеркнутой цены (эффект красного карандаша) */
+        .old-price {
+            position: relative;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 2.6vh;
+        }
+
+        .old-price::after {
+            content: "";
+            position: absolute;
+            left: -10%;
+            top: 45%;
+            width: 120%;
+            height: 3px;
+            background-color: #ff2222;
+            opacity: 0.85;
+            transform: rotate(-10deg) skewX(-5deg);
+            border-radius: 2px;
+            box-shadow: 0 0 2px rgba(255, 0, 0, 0.5);
+        }
+
+        /* Панель кнопок сверху справа */
+        .controls {
             position: fixed;
             top: 2vh;
             right: 2vw;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .toggle-btn {
             width: 46px;
             height: 46px;
             background: rgba(0, 0, 0, 0.6);
@@ -108,7 +142,6 @@
             border-radius: 50%;
             font-size: 22px;
             cursor: pointer;
-            z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -117,6 +150,25 @@
         .toggle-btn:hover { 
             background: rgba(255, 255, 255, 0.2); 
             transform: scale(1.05);
+        }
+
+        /* Кнопка теста */
+        .test-btn {
+            padding: 0 15px;
+            height: 46px;
+            background: rgba(180, 0, 0, 0.7);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 23px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .test-btn.active {
+            background: rgba(0, 180, 0, 0.7);
         }
 
         body.fake-fullscreen {
@@ -129,7 +181,10 @@
 </head>
 <body>
 
-    <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
+    <div class="controls">
+        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()" title="Включить воскресную акцию для проверки">🧪 Тест акции: ВЫКЛ</button>
+        <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
+    </div>
 
     <div class="menu-container" id="menu-list">
         <div style="color: white; font-size: 2.5vh; text-align: center;">Загрузка меню...</div>
@@ -137,8 +192,56 @@
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
+        
+        let forceTestMode = false; // Флаг принудительного включения теста
 
         document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
+
+        function toggleTestMode() {
+            forceTestMode = !forceTestMode;
+            const btn = document.getElementById('testToggleBtn');
+            if (forceTestMode) {
+                btn.innerText = '🧪 Тест акции: ВКЛ';
+                btn.classList.add('active');
+            } else {
+                btn.innerText = '🧪 Тест акции: ВЫКЛ';
+                btn.classList.remove('active');
+            }
+            loadMenuFromCloud(); // Перезагружаем меню с учетом нового режима
+        }
+
+        function renderPriceHTML(title, basePriceStr) {
+            const now = new Date();
+            const dayOfWeek = now.getDay(); 
+            const hours = now.getHours();   
+
+            const cleanTitle = title.trim().toLowerCase();
+
+            // Условия реального времени (Воскресенье с 12:00 или Понедельник до 12:00)
+            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
+            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
+            
+            // Если включен тест ИЛИ наступило реальное время акции
+            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
+
+            const isTargetItem = (cleanTitle === 'guinness' || cleanTitle === 'kilkenny');
+
+            if (isPromoActive && isTargetItem) {
+                let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
+                
+                if (!isNaN(numericPrice)) {
+                    let discountedPrice = Math.round(numericPrice * 0.5); 
+                    let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
+                    let newPriceStr = discountedPrice + ' ' + suffix;
+
+                    // Новая цена слева, старая перечеркнутая «от руки» справа
+                    return '<span class="new-price">' + newPriceStr + '</span>' +
+                           '<span class="old-price">' + basePriceStr + '</span>';
+                }
+            }
+
+            return '<span>' + basePriceStr + '</span>';
+        }
 
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
@@ -165,6 +268,8 @@
                     var item = data.items[index];
                     var itemNumber = index + 1;
                     
+                    var priceHTML = renderPriceHTML(item.title, item.price);
+                    
                     var div = document.createElement('div');
                     div.className = 'menu-item';
                     div.innerHTML =
@@ -175,7 +280,7 @@
                             '</div>' +
                             '<div class="item-subtitle">' + item.subtitle + '</div>' +
                         '</div>' +
-                        '<div class="item-price">' + item.price + '</div>';
+                        '<div class="item-price">' + priceHTML + '</div>';
                     container.appendChild(div);
                 }
             };
@@ -195,7 +300,7 @@
                         document.body.classList.toggle('fake-fullscreen');
                     });
                 } else {
-                    document.body.classList.toggle('fake-fullscreen');
+                    document.body.classList.toggle('flow-fake-fullscreen');
                 }
             } else {
                 if (document.exitFullscreen) {
