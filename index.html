@@ -97,12 +97,10 @@
             gap: 15px;
         }
 
-        /* Стиль для акционной (новой) цены слева */
         .new-price {
             color: #ff3333;
         }
 
-        /* Стиль для старой перечеркнутой цены */
         .old-price {
             position: relative;
             color: rgba(255, 255, 255, 0.5);
@@ -123,7 +121,6 @@
             box-shadow: 0 0 2px rgba(255, 0, 0, 0.5);
         }
 
-        /* Панель кнопок */
         .controls {
             position: fixed;
             top: 2vh;
@@ -223,6 +220,7 @@
                 const dayOfWeek = now.getDay(); 
                 const hours = now.getHours();   
 
+                // Очищаем строку от лишних пробелов и переводим в нижний регистр
                 const cleanTitle = (title || '').trim().toLowerCase();
 
                 const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
@@ -230,9 +228,8 @@
                 
                 const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
                 
-                // Привязка к позициям по ключевым словам в названии (поддерживает английский и русский языки)
-                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('гиннесс') || 
-                                     cleanTitle.includes('kilkenny') || cleanTitle.includes('килкенни');
+                // Четкая проверка на GUINNESS и KILKENNY
+                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
 
                 if (isPromoActive && isTargetItem && basePriceStr) {
                     let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
