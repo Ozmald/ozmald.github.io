@@ -40,7 +40,7 @@
         .menu-item {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center; /* Центрирование по вертикали */
             padding: 1.2vh 0 0.8vh 0; 
             border-bottom: 1px solid rgba(255, 255, 255, 0.25);
             break-inside: avoid;
@@ -50,7 +50,7 @@
         .item-info { 
             flex-grow: 1; 
             padding-right: 20px; 
-            padding-left: 32px; /* Создаем отступ слева для выравнивания описания с названием */
+            padding-left: 32px; /* Отступ слева для выравнивания описания с названием */
             position: relative;
         }
 
@@ -84,14 +84,15 @@
             letter-spacing: 0.3px; 
         }
         
-        /* Белый увеличенный шрифт цен, выровнен по правому краю */
+        /* Цены: выравнивание строго по центру блока (по горизонтали) */
         .item-price { 
             font-weight: bold; 
             font-size: 3.2vh; 
             white-space: nowrap; 
             color: #ffffff;
-            text-align: right;
-            min-width: 80px;
+            text-align: center; /* Выравнивание по центру */
+            width: 120px;       /* Зафиксированная ширина блока цены */
+            flex-shrink: 0;
         }
 
         /* Кнопка полноэкранного режима */
