@@ -187,7 +187,7 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
-        let globalMenuData = null; // Хранилище загруженных данных
+        let savedData = null; // Постоянное хранилище данных в памяти
 
         document.addEventListener('DOMContentLoaded', function() {
             loadMenuFromCloud();
@@ -204,11 +204,9 @@
                 btn.classList.remove('active');
             }
             
-            // Если данные уже есть в памяти, сразу перерисовываем без повторного запроса к сети
-            if (globalMenuData) {
-                renderMenu(globalMenuData);
-            } else {
-                loadMenuFromCloud();
+            // Если данные уже загружены, рисуем мгновенно без запросов к сети
+            if (savedData) {
+                renderMenu(savedData);
             }
         }
 
@@ -273,20 +271,26 @@
 
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', API_URL + '?t=' + new Date().getTime(), true);
+            xhr.open('GET', API_URL, true);
             xhr.onload = function () {
                 if (xhr.status < 200 || xhr.status >= 300) {
+                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка загрузки</div>';
                     return;
                 }
                 try {
                     var data = JSON.parse(xhr.responseText);
                     if (data && data.items) {
-                        globalMenuData = data; // Сохраняем данные
-                        renderMenu(data);      // Отрисовываем
+                        savedData = data;    // Сохраняем данные в память
+                        renderMenu(data);    // Отрисовываем первый раз
+                    } else {
+                        document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Неверный формат данных</div>';
                     }
                 } catch (e) {
-                    console.error("Ошибка парсинга:", e);
+                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка обработки данных</div>';
                 }
+            };
+            xhr.onerror = function() {
+                document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка сети</div>';
             };
             xhr.send();
         }
