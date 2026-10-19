@@ -35,8 +35,6 @@
             margin: 0 auto;
             column-count: 2;
             column-gap: 6vw; 
-            max-height: 85vh;
-            overflow-y: auto;
         }
 
         .menu-item {
@@ -84,6 +82,7 @@
             letter-spacing: 0.3px; 
         }
         
+        /* Центрированные фиксированные контейнеры цен */
         .item-price { 
             font-weight: bold; 
             font-size: 3.2vh; 
@@ -98,37 +97,14 @@
             gap: 15px;
         }
 
-        .new-price {
-            color: #ff3333;
-        }
-
-        .old-price {
-            position: relative;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 2.6vh;
-        }
-
-        .old-price::after {
-            content: "";
-            position: absolute;
-            left: -10%;
-            top: 45%;
-            width: 120%;
-            height: 3px;
-            background-color: #ff2222;
-            opacity: 0.85;
-            transform: rotate(-10deg) skewX(-5deg);
-            border-radius: 2px;
-            box-shadow: 0 0 2px rgba(255, 0, 0, 0.5);
-        }
-
+        /* Панель кнопок */
         .controls {
             position: fixed;
             top: 2vh;
             right: 2vw;
             display: flex;
             gap: 10px;
-            z-index: 10000;
+            z-index: 1000;
         }
 
         .toggle-btn {
@@ -145,23 +121,9 @@
             align-items: center;
             transition: all 0.3s;
         }
-
-        .test-btn {
-            padding: 0 15px;
-            height: 46px;
-            background: rgba(180, 0, 0, 0.7);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 23px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        .test-btn.active {
-            background: rgba(0, 180, 0, 0.7);
+        .toggle-btn:hover { 
+            background: rgba(255, 255, 255, 0.2); 
+            transform: scale(1.05);
         }
 
         body.fake-fullscreen {
@@ -175,121 +137,51 @@
 <body>
 
     <div class="controls">
-        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест акции: ВЫКЛ</button>
         <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
     </div>
 
     <div class="menu-container" id="menu-list">
-        <div style="color: white; font-size: 2.5vh; text-align: center;">Подключение к облаку...</div>
+        <div style="color: white; font-size: 2.5vh; text-align: center;">Загрузка меню...</div>
     </div>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
-        
-        let forceTestMode = false;
-        let globalData = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadMenuFromCloud();
-        });
-
-        function toggleTestMode() {
-            forceTestMode = !forceTestMode;
-            const btn = document.getElementById('testToggleBtn');
-            if (forceTestMode) {
-                btn.innerText = '🧪 Тест акции: ВКЛ';
-                btn.classList.add('active');
-            } else {
-                btn.innerText = '🧪 Тест акции: ВЫКЛ';
-                btn.classList.remove('active');
-            }
-            
-            if (globalData) {
-                renderMenu(globalData);
-            }
-        }
-
-        function renderMenu(data) {
-            var container = document.getElementById('menu-list');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            if (!data || !data.items || data.items.length === 0) {
-                container.innerHTML = '<div style="color: yellow; text-align: center;">Получены пустые данные из таблицы</div>';
-                return;
-            }
-
-            const now = new Date();
-            const dayOfWeek = now.getDay(); 
-            const hours = now.getHours();   
-            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
-            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
-            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-
-            for (var index = 0; index < data.items.length; index++) {
-                var item = data.items[index];
-                var itemNumber = index + 1;
-                var title = item.title || '';
-                var basePriceStr = item.price || '';
-                
-                const cleanTitle = title.trim().toLowerCase();
-                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
-
-                let priceHTML = '';
-
-                if (isPromoActive && isTargetItem && basePriceStr) {
-                    let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
-                    if (!isNaN(numericPrice) && numericPrice > 0) {
-                        let discountedPrice = Math.round(numericPrice * 0.5); 
-                        let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
-                        let newPriceStr = discountedPrice + ' ' + suffix;
-
-                        priceHTML = '<span class="new-price">' + newPriceStr + '</span>' +
-                                    '<span class="old-price">' + basePriceStr + '</span>';
-                    } else {
-                        priceHTML = '<span>' + basePriceStr + '</span>';
-                    }
-                } else {
-                    priceHTML = '<span>' + basePriceStr + '</span>';
-                }
-                
-                var div = document.createElement('div');
-                div.className = 'menu-item';
-                div.innerHTML =
-                    '<div class="item-info">' +
-                        '<span class="item-num">' + itemNumber + '.</span>' +
-                        '<div class="item-header">' +
-                            '<span class="item-title">' + title + '</span>' +
-                        '</div>' +
-                        '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
-                    '</div>' +
-                    '<div class="item-price">' + priceHTML + '</div>';
-                container.appendChild(div);
-            }
-        }
+        document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
 
         function loadMenuFromCloud() {
-            // Используем fetch вместо XMLHttpRequest с обработкой режима CORS
-            fetch(API_URL)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Ошибка сети: ' + response.status);
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', API_URL, true);
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var container = document.getElementById('menu-list');
+                        container.innerHTML = '';
+                        
+                        for (var index = 0; index < data.items.length; index++) {
+                            var item = data.items[index];
+                            var itemNumber = index + 1;
+                            
+                            var div = document.createElement('div');
+                            div.className = 'menu-item';
+                            div.innerHTML =
+                                '<div class="item-info">' +
+                                    '<span class="item-num">' + itemNumber + '.</span>' +
+                                    '<div class="item-header">' +
+                                        '<span class="item-title">' + (item.title || '') + '</span>' +
+                                    '</div>' +
+                                    '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
+                                '</div>' +
+                                '<div class="item-price">' + (item.price || '') + '</div>';
+                            container.appendChild(div);
+                        }
+                    } catch (e) {
+                        console.error("Ошибка парсинга:", e);
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.items) {
-                        globalData = data;
-                        renderMenu(data);
-                    } else {
-                        document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Таблица не содержит элементов (items)</div>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка загрузки:', error);
-                    document.getElementById('menu-list').innerHTML = '<div style="color: #ff6666; text-align: center; font-size: 2.2vh;">Ошибка загрузки данных.<br>Проверьте, опубликован ли Google Apps Script как Web App с доступом "Anyone".</div>';
-                });
+                }
+            };
+            xhr.send();
         }
 
         function toggleFullScreen() {
