@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Меню Напитков (Тест)</title>
+    <title>Меню Напитков (Отладка)</title>
     <style>
         body {
             margin: 0;
@@ -35,6 +35,8 @@
             margin: 0 auto;
             column-count: 2;
             column-gap: 6vw; 
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .menu-item {
@@ -173,31 +175,26 @@
 <body>
 
     <div class="controls">
-        <!-- Добавили явный вызов через window для гарантии -->
-        <button class="test-btn" id="testToggleBtn" onclick="window.toggleTestMode()">🧪 Тест ВСЕХ цен: ВЫКЛ</button>
+        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест ВСЕХ цен: ВЫКЛ</button>
         <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
     </div>
 
     <div class="menu-container" id="menu-list">
-        <div style="color: white; font-size: 2.5vh; text-align: center;">Загрузка меню...</div>
+        <div style="color: white; font-size: 2.5vh; text-align: center;">Подключение к облаку...</div>
     </div>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
-        let lastLoadedData = null;
+        let cachedMenuData = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Страница загружена, запрашиваем меню...");
             loadMenuFromCloud();
         });
 
-        // Делаем функцию глобальной, чтобы клик по кнопке точно ее нашел
-        window.toggleTestMode = function() {
+        function toggleTestMode() {
             forceTestMode = !forceTestMode;
-            console.log("Тестовый режим изменен на:", forceTestMode);
-            
             const btn = document.getElementById('testToggleBtn');
             if (forceTestMode) {
                 btn.innerText = '🧪 Тест ВСЕХ цен: ВКЛ';
@@ -207,52 +204,47 @@
                 btn.classList.remove('active');
             }
             
-            if (lastLoadedData) {
-                renderMenu(lastLoadedData);
-            } else {
-                loadMenuFromCloud();
+            if (cachedMenuData) {
+                renderMenu(cachedMenuData);
             }
-        };
+        }
 
         function renderPriceHTML(title, basePriceStr) {
-            try {
-                const now = new Date();
-                const dayOfWeek = now.getDay(); 
-                const hours = now.getHours();   
+            const now = new Date();
+            const dayOfWeek = now.getDay(); 
+            const hours = now.getHours();   
 
-                const cleanTitle = (title || '').trim().toLowerCase();
+            const cleanTitle = (title || '').trim().toLowerCase();
+            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
+            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
+            
+            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
+            const isTargetItem = forceTestMode ? true : (cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny'));
 
-                const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
-                const isMondayPromo = (dayOfWeek === 1 && hours < 12);
-                
-                // В тестовом режиме применяем ко ВСЕМ позициям
-                const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-                const isTargetItem = forceTestMode ? true : (cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny'));
+            if (isPromoActive && isTargetItem && basePriceStr) {
+                let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
+                if (!isNaN(numericPrice) && numericPrice > 0) {
+                    let discountedPrice = Math.round(numericPrice * 0.5); 
+                    let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
+                    let newPriceStr = discountedPrice + ' ' + suffix;
 
-                if (isPromoActive && isTargetItem && basePriceStr) {
-                    let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
-                    
-                    if (!isNaN(numericPrice) && numericPrice > 0) {
-                        let discountedPrice = Math.round(numericPrice * 0.5); 
-                        let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
-                        let newPriceStr = discountedPrice + ' ' + suffix;
-
-                        return '<span class="new-price">' + newPriceStr + '</span>' +
-                               '<span class="old-price">' + basePriceStr + '</span>';
-                    }
+                    return '<span class="new-price">' + newPriceStr + '</span>' +
+                           '<span class="old-price">' + basePriceStr + '</span>';
                 }
-            } catch (e) {
-                console.error("Ошибка в расчете цены:", e);
             }
 
             return '<span>' + (basePriceStr || '') + '</span>';
         }
 
         function renderMenu(data) {
-            console.log("Рендеринг меню, элементов:", data.items.length, "Тест активен:", forceTestMode);
             var container = document.getElementById('menu-list');
             container.innerHTML = '';
             
+            if (!data.items || data.items.length === 0) {
+                container.innerHTML = '<div style="color: yellow; text-align: center;">Данные получены, но список items пуст!</div>';
+                return;
+            }
+
             for (var index = 0; index < data.items.length; index++) {
                 var item = data.items[index];
                 var itemNumber = index + 1;
@@ -276,41 +268,37 @@
 
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
-            // Добавляем случайный параметр к URL, чтобы победить кэширование браузера
             xhr.open('GET', API_URL + '?t=' + new Date().getTime(), true);
             xhr.onload = function () {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    showLoadError();
+                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка сети: статус ' + xhr.status + '</div>';
                     return;
                 }
                 try {
-                    var data = JSON.parse(xhr.responseText);
+                    var rawText = xhr.responseText;
+                    var data = JSON.parse(rawText);
+                    
                     if (!data || !data.items) {
-                        showLoadError();
+                        document.getElementById('menu-list').innerHTML = '<div style="color: orange; text-align: center;">Ответ сервера пустой или неверный формат. Ответ: ' + rawText.substring(0, 100) + '</div>';
                         return;
                     }
-                    lastLoadedData = data;
+                    
+                    cachedMenuData = data;
                     renderMenu(data);
                 } catch (e) {
-                    console.error("Ошибка парсинга данных:", e);
-                    showLoadError();
+                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка разбора JSON: ' + e.message + '</div>';
                 }
             };
             xhr.onerror = function() {
-                showLoadError();
+                document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка CORS или нет связи с сервером Google Apps Script</div>';
             };
             xhr.send();
-        }
-
-        function showLoadError() {
-            document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center; font-size: 2.5vh;">Ошибка загрузки меню</div>';
         }
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen().catch(function (err) {
-                        console.warn('Фуллскрин заблокирован');
                         document.body.classList.toggle('fake-fullscreen');
                     });
                 } else {
