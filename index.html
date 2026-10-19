@@ -175,8 +175,9 @@
 <body>
 
     <div class="controls">
-        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест акции: ВЫКЛ</button>
-        <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
+        <!-- Убран строчный onclick, привязка идет через JS -->
+        <button class="test-btn" id="testToggleBtn">🧪 Тест акции: ВЫКЛ</button>
+        <button class="toggle-btn" id="fullScreenBtn" title="На весь экран">⛶</button>
     </div>
 
     <div class="menu-container" id="menu-list">
@@ -184,133 +185,138 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
-        
-        let forceTestMode = false;
-        let savedData = null; // Постоянное хранилище данных в памяти
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadMenuFromCloud();
-        });
-
-        function toggleTestMode() {
-            forceTestMode = !forceTestMode;
-            const btn = document.getElementById('testToggleBtn');
-            if (forceTestMode) {
-                btn.innerText = '🧪 Тест акции: ВКЛ';
-                btn.classList.add('active');
-            } else {
-                btn.innerText = '🧪 Тест акции: ВЫКЛ';
-                btn.classList.remove('active');
-            }
+        (function() {
+            const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
             
-            // Если данные уже загружены, рисуем мгновенно без запросов к сети
-            if (savedData) {
-                renderMenu(savedData);
-            }
-        }
+            let forceTestMode = false;
+            let globalMenuData = null;
 
-        function renderPriceHTML(title, basePriceStr) {
-            const now = new Date();
-            const dayOfWeek = now.getDay(); 
-            const hours = now.getHours();   
+            document.addEventListener('DOMContentLoaded', function() {
+                // Безопасная привязка событий
+                const testBtn = document.getElementById('testToggleBtn');
+                if (testBtn) {
+                    testBtn.addEventListener('click', toggleTestMode);
+                }
 
-            const cleanTitle = (title || '').trim().toLowerCase();
-            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
-            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
-            
-            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-            const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
+                const fullScreenBtn = document.getElementById('fullScreenBtn');
+                if (fullScreenBtn) {
+                    fullScreenBtn.addEventListener('click', toggleFullScreen);
+                }
 
-            if (isPromoActive && isTargetItem && basePriceStr) {
-                let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
-                if (!isNaN(numericPrice) && numericPrice > 0) {
-                    let discountedPrice = Math.round(numericPrice * 0.5); 
-                    let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
-                    let newPriceStr = discountedPrice + ' ' + suffix;
+                loadMenuFromCloud();
+            });
 
-                    return '<span class="new-price">' + newPriceStr + '</span>' +
-                           '<span class="old-price">' + basePriceStr + '</span>';
+            function toggleTestMode() {
+                forceTestMode = !forceTestMode;
+                const btn = document.getElementById('testToggleBtn');
+                if (btn) {
+                    if (forceTestMode) {
+                        btn.innerText = '🧪 Тест акции: ВКЛ';
+                        btn.classList.add('active');
+                    } else {
+                        btn.innerText = '🧪 Тест акции: ВЫКЛ';
+                        btn.classList.remove('active');
+                    }
+                }
+                
+                // Перерисовываем только если данные уже есть, не очищая экран попусту
+                if (globalMenuData && globalMenuData.items) {
+                    renderMenu(globalMenuData);
                 }
             }
 
-            return '<span>' + (basePriceStr || '') + '</span>';
-        }
+            function renderPriceHTML(title, basePriceStr) {
+                const now = new Date();
+                const dayOfWeek = now.getDay(); 
+                const hours = now.getHours();   
 
-        function renderMenu(data) {
-            var container = document.getElementById('menu-list');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            if (!data || !data.items || data.items.length === 0) {
-                container.innerHTML = '<div style="color: yellow; text-align: center;">Список меню пуст</div>';
-                return;
+                const cleanTitle = (title || '').trim().toLowerCase();
+                const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
+                const isMondayPromo = (dayOfWeek === 1 && hours < 12);
+                
+                const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
+                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
+
+                if (isPromoActive && isTargetItem && basePriceStr) {
+                    let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
+                    if (!isNaN(numericPrice) && numericPrice > 0) {
+                        let discountedPrice = Math.round(numericPrice * 0.5); 
+                        let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
+                        let newPriceStr = discountedPrice + ' ' + suffix;
+
+                        return '<span class="new-price">' + newPriceStr + '</span>' +
+                               '<span class="old-price">' + basePriceStr + '</span>';
+                    }
+                }
+
+                return '<span>' + (basePriceStr || '') + '</span>';
             }
 
-            for (var index = 0; index < data.items.length; index++) {
-                var item = data.items[index];
-                var itemNumber = index + 1;
+            function renderMenu(data) {
+                const container = document.getElementById('menu-list');
+                if (!container) return;
                 
-                var priceHTML = renderPriceHTML(item.title, item.price);
-                
-                var div = document.createElement('div');
-                div.className = 'menu-item';
-                div.innerHTML =
-                    '<div class="item-info">' +
-                        '<span class="item-num">' + itemNumber + '.</span>' +
-                        '<div class="item-header">' +
-                            '<span class="item-title">' + (item.title || '') + '</span>' +
-                        '</div>' +
-                        '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
-                    '</div>' +
-                    '<div class="item-price">' + priceHTML + '</div>';
-                container.appendChild(div);
-            }
-        }
-
-        function loadMenuFromCloud() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', API_URL, true);
-            xhr.onload = function () {
-                if (xhr.status < 200 || xhr.status >= 300) {
-                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка загрузки</div>';
+                if (!data || !data.items || data.items.length === 0) {
                     return;
                 }
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    if (data && data.items) {
-                        savedData = data;    // Сохраняем данные в память
-                        renderMenu(data);    // Отрисовываем первый раз
-                    } else {
-                        document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Неверный формат данных</div>';
-                    }
-                } catch (e) {
-                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка обработки данных</div>';
-                }
-            };
-            xhr.onerror = function() {
-                document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка сети</div>';
-            };
-            xhr.send();
-        }
 
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(function (err) {
-                        document.body.classList.toggle('fake-fullscreen');
-                    });
-                } else {
-                    document.body.classList.toggle('fake-fullscreen');
+                let htmlContent = '';
+                for (let index = 0; index < data.items.length; index++) {
+                    let item = data.items[index];
+                    let itemNumber = index + 1;
+                    let priceHTML = renderPriceHTML(item.title, item.price);
+                    
+                    htmlContent += 
+                        '<div class="menu-item">' +
+                            '<div class="item-info">' +
+                                '<span class="item-num">' + itemNumber + '.</span>' +
+                                '<div class="item-header">' +
+                                    '<span class="item-title">' + (item.title || '') + '</span>' +
+                                '</div>' +
+                                '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
+                            '</div>' +
+                            '<div class="item-price">' + priceHTML + '</div>' +
+                        '</div>';
                 }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-                document.body.classList.remove('fake-fullscreen');
+                container.innerHTML = htmlContent;
             }
-        }
+
+            function loadMenuFromCloud() {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', API_URL, true);
+                xhr.onload = function () {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data && data.items && data.items.length > 0) {
+                                globalMenuData = data;
+                                renderMenu(data);
+                            }
+                        } catch (e) {
+                            console.error("Ошибка парсинга", e);
+                        }
+                    }
+                };
+                xhr.send();
+            }
+
+            function toggleFullScreen() {
+                if (!document.fullscreenElement) {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(function (err) {
+                            document.body.classList.toggle('fake-fullscreen');
+                        });
+                    } else {
+                        document.body.classList.toggle('fake-fullscreen');
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                    document.body.classList.remove('fake-fullscreen');
+                }
+            }
+        })();
     </script>
 </body>
 </html>
