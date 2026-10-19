@@ -130,7 +130,7 @@
             right: 2vw;
             display: flex;
             gap: 10px;
-            z-index: 1000;
+            z-index: 10000;
         }
 
         .toggle-btn {
@@ -181,7 +181,7 @@
 <body>
 
     <div class="controls">
-        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()" title="Включить воскресную акцию для проверки">🧪 Тест акции: ВЫКЛ</button>
+        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест акции: ВЫКЛ</button>
         <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
     </div>
 
@@ -193,9 +193,11 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
-        let cachedMenuData = null; // Сохраняем данные в памяти, чтобы не дергать сеть заново при тестах
+        let cachedMenuData = null;
 
-        document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMenuFromCloud();
+        });
 
         function toggleTestMode() {
             forceTestMode = !forceTestMode;
@@ -208,7 +210,6 @@
                 btn.classList.remove('active');
             }
             
-            // Если данные уже загружены, сразу перерисовываем меню без повторного запроса к Google
             if (cachedMenuData) {
                 renderMenu(cachedMenuData);
             } else {
@@ -229,7 +230,7 @@
                 
                 const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
                 
-                // Проверяем как английские, так и русские варианты написания
+                // Привязка к позициям по ключевым словам в названии (поддерживает английский и русский языки)
                 const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('гиннесс') || 
                                      cleanTitle.includes('kilkenny') || cleanTitle.includes('килкенни');
 
@@ -291,7 +292,7 @@
                         showLoadError();
                         return;
                     }
-                    cachedMenuData = data; // Сохраняем для тестов
+                    cachedMenuData = data;
                     renderMenu(data);
                 } catch (e) {
                     console.error("Ошибка парсинга данных:", e);
