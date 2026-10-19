@@ -47,17 +47,52 @@
             margin-bottom: 0;
         }
 
-        .item-info { flex-grow: 1; padding-right: 20px; }
-        .item-header { display: flex; align-items: baseline; margin-bottom: 0.2vh; }
-        .item-num { font-weight: bold; font-size: 2.2vh; margin-right: 8px; min-width: 22px; }
+        .item-info { 
+            flex-grow: 1; 
+            padding-right: 20px; 
+            padding-left: 32px; /* Создаем отступ слева для выравнивания описания с названием */
+            position: relative;
+        }
+
+        .item-header { 
+            display: flex; 
+            align-items: baseline; 
+            margin-bottom: 0.2vh; 
+        }
+
+        .item-num { 
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-weight: bold; 
+            font-size: 2.2vh; 
+            color: #ffffff;
+        }
         
-        /* Увеличенный шрифт названий */
-        .item-title { font-weight: bold; font-size: 2.8vh; letter-spacing: 0.5px; }
+        /* Белый увеличенный шрифт названий */
+        .item-title { 
+            font-weight: bold; 
+            font-size: 2.8vh; 
+            letter-spacing: 0.5px; 
+            color: #ffffff;
+        }
         
-        .item-subtitle { font-size: 1.7vh; color: rgba(255, 255, 255, 0.75); letter-spacing: 0.3px; }
+        /* Подзаголовок начинается ровно под названием напитка */
+        .item-subtitle { 
+            font-size: 1.7vh; 
+            color: rgba(255, 255, 255, 0.75); 
+            letter-spacing: 0.3px; 
+        }
         
-        /* Увеличенный шрифт цен */
-        .item-price { font-weight: bold; font-size: 3.2vh; white-space: nowrap; }
+        /* Белый увеличенный шрифт цен, выровнен по правому краю */
+        .item-price { 
+            font-weight: bold; 
+            font-size: 3.2vh; 
+            white-space: nowrap; 
+            color: #ffffff;
+            text-align: right;
+            min-width: 80px;
+        }
 
         /* Кнопка полноэкранного режима */
         .toggle-btn {
@@ -104,28 +139,6 @@
 
         document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
 
-        // Функция определяет цвет по порядковому номеру позиции (от 1 до 24)
-        function getColorByPosition(num) {
-            if (num >= 1 && num <= 3) {
-                return '#A0522D';     // 1-3: Коричневый
-            } else if (num >= 4 && num <= 5) {
-                return '#00FF00';     // 4-5: Ярко-зеленый (Lime)
-            } else if (num >= 6 && num <= 8) {
-                return '#FF1493';     // 6-8: Кислотно-розовый (DeepPink)
-            } else if (num >= 9 && num <= 16) {
-                return '#FFD700';     // 9-16: Желтый (16-я в том же цвете, что и 15-я)
-            } else if (num === 17) {
-                return '#00BFFF';     // 17: Голубой
-            } else if (num >= 18 && num <= 20) {
-                return '#FF4500';     // 18-20: Красный (18 осталась красной)
-            } else if (num >= 21 && num <= 23) {
-                return '#E0A98D';     // 21-23: Насыщенный бежево-розовый
-            } else if (num === 24) {
-                return '#FFFF00';     // 24: Ярко-желтый
-            }
-            return '#ffffff';         // По умолчанию белый
-        }
-
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', API_URL, true);
@@ -149,18 +162,17 @@
                 
                 for (var index = 0; index < data.items.length; index++) {
                     var item = data.items[index];
-                    var itemNumber = index + 1; // Порядковый номер от 1 до 24
-                    var color = getColorByPosition(itemNumber);
+                    var itemNumber = index + 1;
                     
                     var div = document.createElement('div');
                     div.className = 'menu-item';
                     div.innerHTML =
                         '<div class="item-info">' +
+                            '<span class="item-num">' + itemNumber + '.</span>' +
                             '<div class="item-header">' +
-                                '<span class="item-num" style="color: ' + color + ';">' + itemNumber + '.</span>' +
-                                '<span class="item-title" style="color: ' + color + ';">' + item.title + '</span>' +
+                                '<span class="item-title">' + item.title + '</span>' +
                             '</div>' +
-                                '<div class="item-subtitle">' + item.subtitle + '</div>' +
+                            '<div class="item-subtitle">' + item.subtitle + '</div>' +
                         '</div>' +
                         '<div class="item-price">' + item.price + '</div>';
                     container.appendChild(div);
