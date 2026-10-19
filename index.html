@@ -193,6 +193,7 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
+        let cachedMenuData = null; // Сохраняем данные в памяти, чтобы не дергать сеть заново при тестах
 
         document.addEventListener('DOMContentLoaded', loadMenuFromCloud);
 
@@ -206,7 +207,13 @@
                 btn.innerText = '🧪 Тест акции: ВЫКЛ';
                 btn.classList.remove('active');
             }
-            loadMenuFromCloud();
+            
+            // Если данные уже загружены, сразу перерисовываем меню без повторного запроса к Google
+            if (cachedMenuData) {
+                renderMenu(cachedMenuData);
+            } else {
+                loadMenuFromCloud();
+            }
         }
 
         function renderPriceHTML(title, basePriceStr) {
@@ -221,7 +228,10 @@
                 const isMondayPromo = (dayOfWeek === 1 && hours < 12);
                 
                 const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-                const isTargetItem = (cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny'));
+                
+                // Проверяем как английские, так и русские варианты написания
+                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('гиннесс') || 
+                                     cleanTitle.includes('kilkenny') || cleanTitle.includes('килкенни');
 
                 if (isPromoActive && isTargetItem && basePriceStr) {
                     let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
@@ -242,6 +252,31 @@
             return '<span>' + (basePriceStr || '') + '</span>';
         }
 
+        function renderMenu(data) {
+            var container = document.getElementById('menu-list');
+            container.innerHTML = '';
+            
+            for (var index = 0; index < data.items.length; index++) {
+                var item = data.items[index];
+                var itemNumber = index + 1;
+                
+                var priceHTML = renderPriceHTML(item.title, item.price);
+                
+                var div = document.createElement('div');
+                div.className = 'menu-item';
+                div.innerHTML =
+                    '<div class="item-info">' +
+                        '<span class="item-num">' + itemNumber + '.</span>' +
+                        '<div class="item-header">' +
+                            '<span class="item-title">' + (item.title || '') + '</span>' +
+                        '</div>' +
+                        '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
+                    '</div>' +
+                    '<div class="item-price">' + priceHTML + '</div>';
+                container.appendChild(div);
+            }
+        }
+
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', API_URL, true);
@@ -256,29 +291,8 @@
                         showLoadError();
                         return;
                     }
-                    
-                    var container = document.getElementById('menu-list');
-                    container.innerHTML = '';
-                    
-                    for (var index = 0; index < data.items.length; index++) {
-                        var item = data.items[index];
-                        var itemNumber = index + 1;
-                        
-                        var priceHTML = renderPriceHTML(item.title, item.price);
-                        
-                        var div = document.createElement('div');
-                        div.className = 'menu-item';
-                        div.innerHTML =
-                            '<div class="item-info">' +
-                                '<span class="item-num">' + itemNumber + '.</span>' +
-                                '<div class="item-header">' +
-                                    '<span class="item-title">' + (item.title || '') + '</span>' +
-                                '</div>' +
-                                '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
-                            '</div>' +
-                            '<div class="item-price">' + priceHTML + '</div>';
-                        container.appendChild(div);
-                    }
+                    cachedMenuData = data; // Сохраняем для тестов
+                    renderMenu(data);
                 } catch (e) {
                     console.error("Ошибка парсинга данных:", e);
                     showLoadError();
