@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Меню Напитков (Диагностика)</title>
+    <title>Меню Напитков (Тест)</title>
     <style>
         body {
             margin: 0;
@@ -173,7 +173,8 @@
 <body>
 
     <div class="controls">
-        <button class="test-btn" id="testToggleBtn" onclick="toggleTestMode()">🧪 Тест ВСЕХ цен: ВЫКЛ</button>
+        <!-- Добавили явный вызов через window для гарантии -->
+        <button class="test-btn" id="testToggleBtn" onclick="window.toggleTestMode()">🧪 Тест ВСЕХ цен: ВЫКЛ</button>
         <button class="toggle-btn" onclick="toggleFullScreen()" title="На весь экран">⛶</button>
     </div>
 
@@ -185,14 +186,18 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
-        let cachedMenuData = null;
+        let lastLoadedData = null;
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("Страница загружена, запрашиваем меню...");
             loadMenuFromCloud();
         });
 
-        function toggleTestMode() {
+        // Делаем функцию глобальной, чтобы клик по кнопке точно ее нашел
+        window.toggleTestMode = function() {
             forceTestMode = !forceTestMode;
+            console.log("Тестовый режим изменен на:", forceTestMode);
+            
             const btn = document.getElementById('testToggleBtn');
             if (forceTestMode) {
                 btn.innerText = '🧪 Тест ВСЕХ цен: ВКЛ';
@@ -202,10 +207,12 @@
                 btn.classList.remove('active');
             }
             
-            if (cachedMenuData) {
-                renderMenu(cachedMenuData);
+            if (lastLoadedData) {
+                renderMenu(lastLoadedData);
+            } else {
+                loadMenuFromCloud();
             }
-        }
+        };
 
         function renderPriceHTML(title, basePriceStr) {
             try {
@@ -218,7 +225,7 @@
                 const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
                 const isMondayPromo = (dayOfWeek === 1 && hours < 12);
                 
-                // ДИАГНОСТИКА: Если включен тест, применяем акцию ко ВСЕМ позициям без разбора
+                // В тестовом режиме применяем ко ВСЕМ позициям
                 const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
                 const isTargetItem = forceTestMode ? true : (cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny'));
 
@@ -242,6 +249,7 @@
         }
 
         function renderMenu(data) {
+            console.log("Рендеринг меню, элементов:", data.items.length, "Тест активен:", forceTestMode);
             var container = document.getElementById('menu-list');
             container.innerHTML = '';
             
@@ -268,7 +276,8 @@
 
         function loadMenuFromCloud() {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', API_URL, true);
+            // Добавляем случайный параметр к URL, чтобы победить кэширование браузера
+            xhr.open('GET', API_URL + '?t=' + new Date().getTime(), true);
             xhr.onload = function () {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     showLoadError();
@@ -280,7 +289,7 @@
                         showLoadError();
                         return;
                     }
-                    cachedMenuData = data;
+                    lastLoadedData = data;
                     renderMenu(data);
                 } catch (e) {
                     console.error("Ошибка парсинга данных:", e);
@@ -301,7 +310,7 @@
             if (!document.fullscreenElement) {
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen().catch(function (err) {
-                        console.warn('Системный фулскрин заблокирован телевизором, включаем альтернативный режим');
+                        console.warn('Фуллскрин заблокирован');
                         document.body.classList.toggle('fake-fullscreen');
                     });
                 } else {
