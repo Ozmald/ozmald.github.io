@@ -180,14 +180,14 @@
     </div>
 
     <div class="menu-container" id="menu-list">
-        <div style="color: white; font-size: 2.5vh; text-align: center;">Загрузка меню...</div>
+        <div style="color: white; font-size: 2.5vh; text-align: center;">Подключение к облаку...</div>
     </div>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
-        let rawMenuData = null; // Храним оригинальные данные
+        let globalData = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             loadMenuFromCloud();
@@ -204,9 +204,8 @@
                 btn.classList.remove('active');
             }
             
-            // Если данные уже есть, просто перерисовываем меню на основе текущего режима
-            if (rawMenuData) {
-                renderMenu(rawMenuData);
+            if (globalData) {
+                renderMenu(globalData);
             }
         }
 
@@ -217,7 +216,7 @@
             container.innerHTML = '';
             
             if (!data || !data.items || data.items.length === 0) {
-                container.innerHTML = '<div style="color: yellow; text-align: center;">Список меню пуст</div>';
+                container.innerHTML = '<div style="color: yellow; text-align: center;">Получены пустые данные из таблицы</div>';
                 return;
             }
 
@@ -271,29 +270,26 @@
         }
 
         function loadMenuFromCloud() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', API_URL, true);
-            xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        if (data && data.items) {
-                            rawMenuData = data; // Сохраняем чистые данные
-                            renderMenu(data);   // Отрисовываем меню
-                        } else {
-                            document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Неверный формат данных</div>';
-                        }
-                    } catch (e) {
-                        document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка обработки данных</div>';
+            // Используем fetch вместо XMLHttpRequest с обработкой режима CORS
+            fetch(API_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка сети: ' + response.status);
                     }
-                } else {
-                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка загрузки с сервера</div>';
-                }
-            };
-            xhr.onerror = function() {
-                document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка сети / CORS</div>';
-            };
-            xhr.send();
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.items) {
+                        globalData = data;
+                        renderMenu(data);
+                    } else {
+                        document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Таблица не содержит элементов (items)</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки:', error);
+                    document.getElementById('menu-list').innerHTML = '<div style="color: #ff6666; text-align: center; font-size: 2.2vh;">Ошибка загрузки данных.<br>Проверьте, опубликован ли Google Apps Script как Web App с доступом "Anyone".</div>';
+                });
         }
 
         function toggleFullScreen() {
