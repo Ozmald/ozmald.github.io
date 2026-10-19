@@ -187,7 +187,7 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzF7IkfZTrjTQMmgbyN9LFMEIJGd8SV8a1Yl_-T-OwzQzYhgpDnR5MCvYiLVsFET7Ry/exec';
         
         let forceTestMode = false;
-        let cachedData = null;
+        let rawMenuData = null; // Храним оригинальные данные
 
         document.addEventListener('DOMContentLoaded', function() {
             loadMenuFromCloud();
@@ -204,37 +204,10 @@
                 btn.classList.remove('active');
             }
             
-            // Если данные уже в памяти — немедленно перерисовываем меню
-            if (cachedData) {
-                renderMenu(cachedData);
+            // Если данные уже есть, просто перерисовываем меню на основе текущего режима
+            if (rawMenuData) {
+                renderMenu(rawMenuData);
             }
-        }
-
-        function renderPriceHTML(title, basePriceStr) {
-            const now = new Date();
-            const dayOfWeek = now.getDay(); 
-            const hours = now.getHours();   
-
-            const cleanTitle = (title || '').trim().toLowerCase();
-            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
-            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
-            
-            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-            const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
-
-            if (isPromoActive && isTargetItem && basePriceStr) {
-                let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
-                if (!isNaN(numericPrice) && numericPrice > 0) {
-                    let discountedPrice = Math.round(numericPrice * 0.5); 
-                    let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
-                    let newPriceStr = discountedPrice + ' ' + suffix;
-
-                    return '<span class="new-price">' + newPriceStr + '</span>' +
-                           '<span class="old-price">' + basePriceStr + '</span>';
-                }
-            }
-
-            return '<span>' + (basePriceStr || '') + '</span>';
         }
 
         function renderMenu(data) {
@@ -248,11 +221,39 @@
                 return;
             }
 
+            const now = new Date();
+            const dayOfWeek = now.getDay(); 
+            const hours = now.getHours();   
+            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
+            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
+            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
+
             for (var index = 0; index < data.items.length; index++) {
-                var item = data.items.length ? data.items[index] : data[index];
+                var item = data.items[index];
                 var itemNumber = index + 1;
+                var title = item.title || '';
+                var basePriceStr = item.price || '';
                 
-                var priceHTML = renderPriceHTML(item.title, item.price);
+                const cleanTitle = title.trim().toLowerCase();
+                const isTargetItem = cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny');
+
+                let priceHTML = '';
+
+                if (isPromoActive && isTargetItem && basePriceStr) {
+                    let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
+                    if (!isNaN(numericPrice) && numericPrice > 0) {
+                        let discountedPrice = Math.round(numericPrice * 0.5); 
+                        let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
+                        let newPriceStr = discountedPrice + ' ' + suffix;
+
+                        priceHTML = '<span class="new-price">' + newPriceStr + '</span>' +
+                                    '<span class="old-price">' + basePriceStr + '</span>';
+                    } else {
+                        priceHTML = '<span>' + basePriceStr + '</span>';
+                    }
+                } else {
+                    priceHTML = '<span>' + basePriceStr + '</span>';
+                }
                 
                 var div = document.createElement('div');
                 div.className = 'menu-item';
@@ -260,7 +261,7 @@
                     '<div class="item-info">' +
                         '<span class="item-num">' + itemNumber + '.</span>' +
                         '<div class="item-header">' +
-                            '<span class="item-title">' + (item.title || '') + '</span>' +
+                            '<span class="item-title">' + title + '</span>' +
                         '</div>' +
                         '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
                     '</div>' +
@@ -277,13 +278,20 @@
                     try {
                         var data = JSON.parse(xhr.responseText);
                         if (data && data.items) {
-                            cachedData = data;
-                            renderMenu(data);
+                            rawMenuData = data; // Сохраняем чистые данные
+                            renderMenu(data);   // Отрисовываем меню
+                        } else {
+                            document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Неверный формат данных</div>';
                         }
                     } catch (e) {
-                        console.error("Ошибка разбора JSON:", e);
+                        document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка обработки данных</div>';
                     }
+                } else {
+                    document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка загрузки с сервера</div>';
                 }
+            };
+            xhr.onerror = function() {
+                document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка сети / CORS</div>';
             };
             xhr.send();
         }
