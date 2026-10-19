@@ -102,7 +102,7 @@
             color: #ff3333;
         }
 
-        /* Стиль для старой перечеркнутой цены (эффект красного карандаша) */
+        /* Стиль для старой перечеркнутой цены */
         .old-price {
             position: relative;
             color: rgba(255, 255, 255, 0.5);
@@ -123,7 +123,7 @@
             box-shadow: 0 0 2px rgba(255, 0, 0, 0.5);
         }
 
-        /* Панель кнопок сверху справа */
+        /* Панель кнопок */
         .controls {
             position: fixed;
             top: 2vh;
@@ -152,7 +152,6 @@
             transform: scale(1.05);
         }
 
-        /* Кнопка теста */
         .test-btn {
             padding: 0 15px;
             height: 46px;
@@ -211,33 +210,36 @@
         }
 
         function renderPriceHTML(title, basePriceStr) {
-            const now = new Date();
-            const dayOfWeek = now.getDay(); 
-            const hours = now.getHours();   
+            try {
+                const now = new Date();
+                const dayOfWeek = now.getDay(); 
+                const hours = now.getHours();   
 
-            const cleanTitle = title.trim().toLowerCase();
+                const cleanTitle = (title || '').trim().toLowerCase();
 
-            // Воскресенье с 12:00 или Понедельник до 12:00
-            const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
-            const isMondayPromo = (dayOfWeek === 1 && hours < 12);
-            
-            const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
-            const isTargetItem = (cleanTitle === 'guinness' || cleanTitle === 'kilkenny');
-
-            if (isPromoActive && isTargetItem) {
-                let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
+                const isSundayPromo = (dayOfWeek === 0 && hours >= 12);
+                const isMondayPromo = (dayOfWeek === 1 && hours < 12);
                 
-                if (!isNaN(numericPrice)) {
-                    let discountedPrice = Math.round(numericPrice * 0.5); 
-                    let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
-                    let newPriceStr = discountedPrice + ' ' + suffix;
+                const isPromoActive = forceTestMode || isSundayPromo || isMondayPromo;
+                const isTargetItem = (cleanTitle.includes('guinness') || cleanTitle.includes('kilkenny'));
 
-                    return '<span class="new-price">' + newPriceStr + '</span>' +
-                           '<span class="old-price">' + basePriceStr + '</span>';
+                if (isPromoActive && isTargetItem && basePriceStr) {
+                    let numericPrice = parseFloat(basePriceStr.replace(/[^\d.]/g, ''));
+                    
+                    if (!isNaN(numericPrice) && numericPrice > 0) {
+                        let discountedPrice = Math.round(numericPrice * 0.5); 
+                        let suffix = basePriceStr.replace(/[\d.\s]/g, ''); 
+                        let newPriceStr = discountedPrice + ' ' + suffix;
+
+                        return '<span class="new-price">' + newPriceStr + '</span>' +
+                               '<span class="old-price">' + basePriceStr + '</span>';
+                    }
                 }
+            } catch (e) {
+                console.error("Ошибка в расчете цены:", e);
             }
 
-            return '<span>' + basePriceStr + '</span>';
+            return '<span>' + (basePriceStr || '') + '</span>';
         }
 
         function loadMenuFromCloud() {
@@ -250,43 +252,46 @@
                 }
                 try {
                     var data = JSON.parse(xhr.responseText);
-                } catch (e) {
-                    showLoadError();
-                    return;
-                }
-                if (!data || !data.items) {
-                    showLoadError();
-                    return;
-                }
-                var container = document.getElementById('menu-list');
-                container.innerHTML = '';
-                
-                for (var index = 0; index < data.items.length; index++) {
-                    var item = data.items[index];
-                    var itemNumber = index + 1;
+                    if (!data || !data.items) {
+                        showLoadError();
+                        return;
+                    }
                     
-                    var priceHTML = renderPriceHTML(item.title, item.price);
+                    var container = document.getElementById('menu-list');
+                    container.innerHTML = '';
                     
-                    var div = document.createElement('div');
-                    div.className = 'menu-item';
-                    div.innerHTML =
-                        '<div class="item-info">' +
-                            '<span class="item-num">' + itemNumber + '.</span>' +
-                            '<div class="item-header">' +
-                                '<span class="item-title">' + item.title + '</span>' +
+                    for (var index = 0; index < data.items.length; index++) {
+                        var item = data.items[index];
+                        var itemNumber = index + 1;
+                        
+                        var priceHTML = renderPriceHTML(item.title, item.price);
+                        
+                        var div = document.createElement('div');
+                        div.className = 'menu-item';
+                        div.innerHTML =
+                            '<div class="item-info">' +
+                                '<span class="item-num">' + itemNumber + '.</span>' +
+                                '<div class="item-header">' +
+                                    '<span class="item-title">' + (item.title || '') + '</span>' +
+                                '</div>' +
+                                '<div class="item-subtitle">' + (item.subtitle || '') + '</div>' +
                             '</div>' +
-                            '<div class="item-subtitle">' + item.subtitle + '</div>' +
-                        '</div>' +
-                        '<div class="item-price">' + priceHTML + '</div>';
-                    container.appendChild(div);
+                            '<div class="item-price">' + priceHTML + '</div>';
+                        container.appendChild(div);
+                    }
+                } catch (e) {
+                    console.error("Ошибка парсинга данных:", e);
+                    showLoadError();
                 }
             };
-            xhr.onerror = showLoadError;
+            xhr.onerror = function() {
+                showLoadError();
+            };
             xhr.send();
         }
 
         function showLoadError() {
-            document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center;">Ошибка загрузки меню</div>';
+            document.getElementById('menu-list').innerHTML = '<div style="color: red; text-align: center; font-size: 2.5vh;">Ошибка загрузки меню</div>';
         }
 
         function toggleFullScreen() {
